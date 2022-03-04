@@ -1,0 +1,31 @@
+#reference: https://github.com/samber/awesome-prometheus-alerts/blob/master/_data/rules.yml
+groups:
+- name: Endpointmonitoring
+  rules:
+  #  Alert for any instance that is unreachable for >5 minutes.
+  - alert: InstanceDown
+    expr: up == 0
+    for: 1m
+    labels:
+      severity: critical
+    annotations:
+      summary: "Instance {{ $labels.instance }} down"
+      description: "{{ $labels.instance }} of job {{ $labels.job }} has been down for more than 1 minutes."
+
+  - alert: flaskHighHttp4xxErrorRate
+    expr: sum(rate(flask_http_request_duration_seconds_count{status=~"^4.."}[1m])) / sum(rate(flask_http_request_duration_seconds_count[1m])) * 100 > 5
+    for: 30s
+    labels:
+      severity: warning
+    annotations:
+      summary: flask high HTTP 4xx error rate (instance {{ $labels.instance }})
+      description: "Too many HTTP requests with status 4xx (> 5%)\n  VALUE = {{ $value }}\n  LABELS = {{ $labels }}"
+
+  - alert: flaskHighHttp5xxErrorRate
+    expr: sum(rate(flask_http_request_duration_seconds_count{status=~"^5.."}[1m])) / sum(rate(flask_http_request_duration_seconds_count[1m])) * 100 > 5
+    for: 30s
+    labels:
+      severity: warning
+    annotations:
+      summary: flask high HTTP 5xx error rate (instance {{ $labels.instance }})
+      description: "Too many HTTP requests with status 5xx (> 5%)\n  VALUE = {{ $value }}\n  LABELS = {{ $labels }}"
